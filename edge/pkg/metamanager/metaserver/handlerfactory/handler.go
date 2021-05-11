@@ -46,6 +46,7 @@ func NewFactory() Factory {
 	}
 	return f
 }
+
 func (f *Factory) Get() http.Handler {
 	if h, ok := f.handlers["get"]; ok {
 		return h
@@ -54,6 +55,7 @@ func (f *Factory) Get() http.Handler {
 	f.handlers["get"] = h
 	return h
 }
+
 func (f *Factory) List() http.Handler {
 	if h, ok := f.handlers["list"]; ok {
 		return h
@@ -80,6 +82,7 @@ func (f *Factory) Delete() http.Handler {
 	}
 	h := handlers.DeleteResource(f.storage, false, f.scope, fakers.NewAlwaysAdmit())
 	f.handlers["delete"] = h
+<<<<<<< HEAD
 	return h
 }
 
@@ -94,6 +97,22 @@ func (f *Factory) Update(req *request.RequestInfo) http.Handler {
 	return h
 }
 
+=======
+	return h
+}
+
+func (f *Factory) Update(req *request.RequestInfo) http.Handler {
+	s := scope.NewRequestScope()
+	s.Kind = schema.GroupVersionKind{
+		Group:   req.APIGroup,
+		Version: req.APIVersion,
+		Kind:    util.UnsafeResourceToKind(req.Resource),
+	}
+	h := handlers.UpdateResource(f.storage, s, fakers.NewAlwaysAdmit())
+	return h
+}
+
+>>>>>>> 4dde75f0539d3688d831181ca4a55d071c5bd74b
 func (f *Factory) Patch(reqInfo *request.RequestInfo) http.Handler {
 	scope := wrapScope{RequestScope: scope.NewRequestScope()}
 	scope.Kind = schema.GroupVersionKind{

@@ -45,14 +45,16 @@ func (l *SelectorListener) sendObj(event watch.Event, messageLayer messagelayer.
 		return
 	}
 
-	msg := model.NewMessage("")
 	accessor, err := meta.Accessor(event.Object)
 	if err != nil {
 		klog.Error(err)
 		return
 	}
+<<<<<<< HEAD
 
 	msg.SetResourceVersion(accessor.GetResourceVersion())
+=======
+>>>>>>> 4dde75f0539d3688d831181ca4a55d071c5bd74b
 	namespace := accessor.GetNamespace()
 	if namespace == "" {
 		namespace = v2.NullNamespace
@@ -62,17 +64,25 @@ func (l *SelectorListener) sendObj(event watch.Event, messageLayer messagelayer.
 		klog.Warningf("built message resource failed with error: %s", err)
 		return
 	}
-	msg.Content = event.Object
+
+	var operation string
 	switch event.Type {
 	case watch.Added:
-		msg.BuildRouter(modules.DynamicControllerModuleName, constants.GroupResource, resource, model.InsertOperation)
+		operation = model.InsertOperation
 	case watch.Modified:
-		msg.BuildRouter(modules.DynamicControllerModuleName, constants.GroupResource, resource, model.UpdateOperation)
+		operation = model.UpdateOperation
 	case watch.Deleted:
-		msg.BuildRouter(modules.DynamicControllerModuleName, constants.GroupResource, resource, model.DeleteOperation)
+		operation = model.DeleteOperation
 	default:
 		klog.Warningf("event type: %s unsupported", event.Type)
+		return
 	}
+
+	msg := model.NewMessage("").
+		SetResourceVersion(accessor.GetResourceVersion()).
+		BuildRouter(modules.DynamicControllerModuleName, constants.GroupResource, resource, operation).
+		FillBody(event.Object)
+
 	if err := messageLayer.Send(*msg); err != nil {
 		klog.Warningf("send message failed with error: %s, operation: %s, resource: %s", err, msg.GetOperation(), msg.GetResource())
 	} else {
